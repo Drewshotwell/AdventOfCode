@@ -10,7 +10,8 @@ main :: IO ()
 main = do
     inputStr <- readFile "input.txt"
     let readInstructions = parseInstructions inputStr
-    print $ length . foldPaper $ readInstructions
+    print $ map (\v -> v `multiplyByMatrix` xAxisReflection) . foldPaper $ readInstructions
+    -- Code found with the power of Desmos
 
 -- Debug --
 
@@ -59,7 +60,8 @@ translateByVector :: Vector -> Vector -> Vector
 translateByVector (x, y) (a, b) = (x + a, y + b)
 
 foldPaper :: ([Vector], [FoldCmd]) -> [Vector]
-foldPaper (crds, ((ft, line):_)) =
+foldPaper (crds, []) = crds
+foldPaper (crds, ((ft, line):rest)) =
     let foldingCrds =
             filter (\(i, j) ->
                 case ft of
@@ -71,6 +73,6 @@ foldPaper (crds, ((ft, line):_)) =
             map (\v ->
                 case ft of
                     VFold -> ((v `translateByVector` (-line, 0)) `multiplyByMatrix` yAxisReflection) `translateByVector` (line, 0)
-                    HFold -> ((v `translateByVector` (0, -line)) `multiplyByMatrix` xAxisReflection) `translateByVector` (0, line)-- ((v `translateByVector` (0, -line)) `multiplyByMatrix` yAxisReflection) `translateByVector` (0, line)
+                    HFold -> ((v `translateByVector` (0, -line)) `multiplyByMatrix` xAxisReflection) `translateByVector` (0, line)
             ) foldingCrds
-    in  nub $ foldedCrds ++ remainingCrds
+    in  foldPaper (nub $ foldedCrds ++ remainingCrds, rest)
